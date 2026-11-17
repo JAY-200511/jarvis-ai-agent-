@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#060a12" />
+  <title>JARVIS — Personal Intelligence</title>
+  <link rel="icon" href="data:," />
+  <style>
+    :root { color-scheme: dark; --bg:#060a12; --panel:#0b111d; --panel2:#0d1623; --line:rgba(112,183,216,.13); --muted:#8294a9; --cyan:#55d9ec; --blue:#238cb3; --text:#e5f0f7; --green:#7ce0bf; --mono:'DM Mono',monospace; --sans:'Manrope',sans-serif; }
+    * { box-sizing:border-box }
+    [hidden] { display:none!important; }
+    html,body { height:100%;overflow:hidden; }
+    body { margin:0; background:radial-gradient(ellipse at 50% 30%,#0b1c2b 0%,var(--bg) 50%); color:var(--text); font-family:var(--sans); min-height:100vh; }
+    button,input { font:inherit }
+    button { color:inherit; cursor:pointer }
+    .shell { height:100dvh;min-height:0;overflow:hidden;display:grid;grid-template-columns:250px minmax(0,1fr); }
+    aside { border-right:1px solid var(--line); background:rgba(6,10,18,.84); padding:25px 16px 18px; display:flex; flex-direction:column; gap:25px; }
+    .brand { display:flex; align-items:center; gap:12px; padding:0 9px; }
+    .brand-mark { width:34px;height:34px;border:1px solid rgba(85,217,236,.55);border-radius:50%;display:grid;place-items:center;color:var(--cyan);box-shadow:0 0 22px #55d9ec22,inset 0 0 12px #55d9ec1a; }
+    .brand-mark span { width:11px;height:11px;border-radius:50%;background:var(--cyan);box-shadow:0 0 13px var(--cyan); }
+    .brand-title { font-size:13px; font-weight:800; letter-spacing:.22em; }
+    .brand-sub { color:#72879a; font:9px var(--mono); letter-spacing:.12em; margin-top:3px; }
+    .section-label { color:#587084; font:9px var(--mono); letter-spacing:.16em; padding:0 10px; text-transform:uppercase; }
+    .nav { display:grid; gap:5px; }
+    .nav button { border:1px solid transparent;background:transparent;text-align:left;padding:10px 11px;border-radius:7px;color:#8da0b2;font-size:12px;display:flex;align-items:center;gap:12px; }
+    .nav button:hover,.nav button.active { background:#10202d;border-color:#55d9ec20;color:#dffaff; }
+    .nav .ico { width:16px;text-align:center;color:var(--cyan);font-size:14px; }
+    .side-spacer { flex:1 }
+    .profile { border-top:1px solid var(--line);padding:17px 6px 0;display:flex;gap:10px;align-items:center; }
+    .avatar { width:29px;height:29px;border-radius:50%;background:linear-gradient(135deg,#205d75,#102535);display:grid;place-items:center;color:#a7f1fa;font-size:11px; }
+    .profile strong { display:block;font-size:11px;font-weight:600; }.profile small { display:block;color:#6c8193;font:9px var(--mono);margin-top:4px; }
+    main { min-width:0;height:100dvh;min-height:0;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#286174 #07111b;display:flex;flex-direction:column;padding:18px clamp(18px,3vw,46px) 12px;max-width:1700px;width:100%;margin:auto; }
+    main::-webkit-scrollbar,.messages::-webkit-scrollbar { width:9px; }
+    main::-webkit-scrollbar-track,.messages::-webkit-scrollbar-track { background:#07111b;border-radius:8px; }
+    main::-webkit-scrollbar-thumb,.messages::-webkit-scrollbar-thumb { background:#205166;border:2px solid #07111b;border-radius:8px; }
+    main::-webkit-scrollbar-thumb:hover,.messages::-webkit-scrollbar-thumb:hover { background:#3c91a6; }
+    .topbar { flex:none;display:flex;align-items:center;justify-content:space-between;gap:15px;padding-bottom:12px;border-bottom:1px solid var(--line); }
+    .crumb { color:#75889a;font:10px var(--mono);letter-spacing:.08em; }.crumb b { color:var(--cyan);font-weight:400; }
+    .top-actions { display:flex;align-items:center;gap:10px; }
+    .mode { border:1px solid #d9a94b30;background:#d9a94b0d;padding:7px 10px;border-radius:4px;color:#dabb78;font:9px var(--mono);letter-spacing:.09em; }
+    .mode:before { content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#e2b952;margin-right:7px;box-shadow:0 0 8px #e2b952; }
+    .icon-btn { width:31px;height:31px;background:#0d1622;border:1px solid var(--line);border-radius:5px;color:#9ab0c1; }
+    .greeting { flex:none;margin:16px 0 12px;display:flex;align-items:end;justify-content:space-between;gap:16px; }
+    h1 { margin:0;font-size:clamp(23px,2.8vw,34px);letter-spacing:-.045em;font-weight:600; }.greeting p { margin:8px 0 0;color:#7e91a2;font-size:12px; }
+    .clock { font:11px var(--mono);color:#71899b;text-align:right; }.clock strong { color:#bdeaf2;font-weight:400;font-size:14px;display:block;margin-bottom:5px; }
+    .grid { flex:1 1 0;min-height:0;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.8fr);gap:12px; }
+    .panel { background:linear-gradient(145deg,rgba(14,24,37,.92),rgba(8,14,24,.94));border:1px solid var(--line);border-radius:9px;overflow:hidden; }
+    .panel-head { display:flex;align-items:center;justify-content:space-between;padding:15px 17px;border-bottom:1px solid var(--line); }
+    .panel-title { font-size:10px;letter-spacing:.16em;font-weight:700;color:#c3d2de; }.eyebrow { font:9px var(--mono);color:#658093;letter-spacing:.09em;margin-top:4px; }
+    .live { color:var(--green);font:9px var(--mono); }.live:before { content:'';display:inline-block;width:5px;height:5px;background:var(--green);border-radius:50%;margin:0 7px 1px 0;box-shadow:0 0 8px var(--green); }
+    .grid>.panel:first-child { min-height:0;display:flex;flex-direction:column; }
+    .core-panel { flex:1;min-height:0;height:auto;position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at center,#102a3a66 0,transparent 62%); }
+    .core-panel:before,.core-panel:after { content:'';position:absolute;pointer-events:none;inset:0;background:linear-gradient(90deg,transparent 49.9%,#55d9ec12 50%,transparent 50.1%),linear-gradient(0deg,transparent 49.9%,#55d9ec0c 50%,transparent 50.1%);mask-image:radial-gradient(ellipse,black,transparent 67%); }
+    .core-panel:after { inset:12% 8%;border-top:1px solid #55d9ec12;border-bottom:1px solid #55d9ec12;background:none; }
+    #neuralCanvas { position:absolute;width:100%;height:100%;inset:0;margin:auto;opacity:.98; }
+    .core { width:min(370px,94%);height:auto;aspect-ratio:1;position:relative;display:grid;place-items:center;z-index:1; }
+    .ring { position:absolute;border-radius:50%;border:1px solid #55d9ec17;inset:0;pointer-events:none; }
+    .ring.one { inset:5%;border-style:dashed;animation:spin 52s linear infinite; }.ring.two { inset:11%;border-color:#55d9ec12;box-shadow:0 0 40px #1595b31a,inset 0 0 35px #1595b30b; }
+    .ring.three { inset:18%;border:1px solid #55d9ec20; }.ring.three:before,.ring.three:after { content:'';position:absolute;width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 12px var(--cyan);top:50%;left:-3px; }
+    .ring.three:after { left:auto;right:-3px;background:#56a8df; }
+    .core-center { width:142px;height:164px;clip-path:polygon(50% 0,78% 5%,94% 20%,100% 43%,94% 76%,76% 94%,50% 100%,24% 94%,6% 76%,0 43%,6% 20%,22% 5%);display:grid;place-items:center;background:linear-gradient(155deg,#183d50 0,#0d1d2c 46%,#07111c 100%);border:1px solid #55d9ec75;box-shadow:0 0 30px #2ccbe53a,inset 0 0 22px #2ccbe52a;position:relative;filter:drop-shadow(0 0 20px #27cde655); }
+    .core-center:before { content:'';position:absolute;inset:8px;clip-path:inherit;border:1px solid #55d9ec4a;background:linear-gradient(145deg,#55d9ec0b,transparent 48%,#55d9ec0c);pointer-events:none; }
+    .robot-face { width:78%;height:72%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;position:relative;z-index:1; }
+    .face-crown { width:34%;height:3px;border-radius:50%;background:#4bbbd4;box-shadow:0 0 9px #55d9ec;opacity:.8; }
+    .robot-eyes { display:flex;align-items:center;justify-content:center;gap:17px;width:100%;height:26px; }
+    .robot-eye { width:25px;height:12px;border:1px solid #8af7ff;background:radial-gradient(ellipse at 50% 56%,#efffff 0 9%,#66f2ff 25%,#13a9d3 57%,#103148 78%);box-shadow:0 0 10px #55e7ff,0 0 23px #25c8ef99;transform:scaleY(1);transition:transform .11s ease;clip-path:polygon(12% 0,88% 0,100% 50%,88% 100%,12% 100%,0 50%); }
+    .robot-eye i { display:block;width:6px;height:6px;border-radius:50%;background:#04111c;margin:3px auto;box-shadow:0 0 4px #b8fbff; }
+    .robot-eye i { transform:translate(var(--look-x,0),var(--look-y,0));transition:transform .12s; }
+    .robot-eye.blink { transform:scaleY(.08); }
+    .face-nose { width:2px;height:9px;background:linear-gradient(#49d8eb,transparent);opacity:.65; }
+    .robot-mouth { width:33px;height:10px;border:1px solid #36d8ec88;border-radius:3px;display:flex;align-items:center;justify-content:center;gap:3px;box-shadow:0 0 9px #55d9ec30;opacity:.8; }
+    .robot-mouth i { width:2px;height:3px;background:#58e9f4;box-shadow:0 0 5px #55d9ec;transition:height .12s; }
+    .core-speaking .robot-mouth i:nth-child(odd) { height:7px; }.core-speaking .robot-mouth i:nth-child(even) { height:5px; }
+    .face-jaw { width:40%;height:2px;border-radius:50%;background:#43bed4;opacity:.5;box-shadow:0 0 7px #55d9ec; }
+    .orbit { position:absolute;top:24px;right:38px;width:8px;height:8px;background:#b8f7ff;border-radius:50%;box-shadow:0 0 15px 3px #55d9ec; }
+    .core-center { animation:corePulse 4s ease-in-out infinite; }
+    @keyframes corePulse { 50% { box-shadow:0 0 48px #2ccbe55e,inset 0 0 30px #2ccbe546; } }
+    .core-thinking .ring.one { animation-duration:7s; }.core-thinking .orbit { animation:orbitPulse .55s ease-in-out infinite alternate; }
+    .core-speaking .core-center { animation-duration:.7s; }.core-speaking .robot-eye { box-shadow:0 0 16px #b8fbff,0 0 30px #25c8ef; }
+    .core-listening .robot-eye { animation:eyeListen 1.8s ease-in-out infinite alternate; }
+    @keyframes orbitPulse { to { transform:scale(1.7);opacity:.6; } } @keyframes eyeListen { to { filter:brightness(1.35); } }
+    .core-readout { position:absolute;top:22px;left:0;right:0;text-align:center;color:#80ddeb;font:9px var(--mono);letter-spacing:.23em;text-shadow:0 0 12px #55d9ec80;z-index:2; }
+    .core-readout span { color:#476d7e;margin:0 7px; }
+    .core-coord { position:absolute;left:19px;bottom:48px;color:#54798b;font:8px var(--mono);letter-spacing:.1em;z-index:2;line-height:1.8; }
+    .core-coord b { color:#8ac9d3;font-weight:400; }
+    @keyframes spin { to { transform:rotate(360deg) } }
+    .core-caption { position:absolute;bottom:25px;left:0;right:0;text-align:center;color:#7893a6;font:9px var(--mono);letter-spacing:.19em; }
+    .core-caption strong { color:#a9e9f2;font-weight:400;display:block;font-size:11px;margin-bottom:7px; }
+    .side-stack { min-height:0;overflow:hidden;display:grid;grid-template-rows:minmax(110px,auto) minmax(125px,1fr) minmax(112px,auto);gap:8px; }
+    .metrics { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:8px; }
+    .metric { min-width:0;min-height:64px;padding:8px;background:#0a1420;border:1px solid #7ab6d314;border-radius:6px; }
+    .metric label { display:block;color:#71899b;font:8px var(--mono);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }.metric strong { display:block;font-size:16px;font-weight:500;margin:7px 0 2px;color:#dcedf3;white-space:nowrap; }.metric small { display:block;color:#557284;font:8px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .metric .good { color:var(--green); }.metric .warm { color:#dbb86d; }
+    .activity { padding:7px 16px 12px; }.event { display:grid;grid-template-columns:15px 1fr auto;gap:9px;align-items:start;padding:11px 0;border-bottom:1px solid #89bbd20c; }.event:last-child { border:0; }
+    .event .dot { width:6px;height:6px;border-radius:50%;margin-top:5px;background:#4cbed1;box-shadow:0 0 7px #4cbed188; }.event .dot.amber { background:#d1ab57;box-shadow:0 0 7px #d1ab5788; }
+    .event p { margin:0;color:#a9bbc8;font-size:10px;line-height:1.5; }.event small { color:#597183;font:9px var(--mono);white-space:nowrap; }
+    .vision { padding:9px 12px;display:grid;grid-template-columns:1fr 90px;align-items:center;gap:8px; }.vision-copy { grid-column:1;grid-row:1;color:#7890a0;font-size:9px;line-height:1.45;margin:0; }.vision-video { grid-column:2;grid-row:1 / span 2;width:100%;aspect-ratio:4/3;object-fit:cover;transform:scaleX(-1);border:1px solid var(--line);border-radius:5px;background:#03070b;margin:0; }.vision-state { grid-column:1;grid-row:2;font:8px var(--mono);color:#5c8192;margin:0;white-space:nowrap; }
+    .small-action { background:#0d1c29;border:1px solid #55d9ec35;border-radius:4px;color:#9bc1cf;padding:7px 9px;font:9px var(--mono); }.small-action:hover,.small-action.active { color:#caffff;border-color:#55d9ec77;background:#112a37; }
+    .lower { flex:0 0 24vh;min-height:145px;max-height:260px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.8fr);gap:12px;margin-top:12px; }
+    .chat { height:100%;min-height:0;display:flex;flex-direction:column; }.messages { flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#286174 transparent;padding:10px 13px;display:flex;flex-direction:column;gap:8px; }
+    .msg { max-width:85%;font-size:11px;line-height:1.45;color:#b3c6d2;padding:8px 10px;border-radius:7px;background:#0c1a27;border:1px solid #4b97b51d;overflow-wrap:anywhere; }.msg.user { align-self:flex-end;background:#102535;color:#d4eff3;border-color:#55d9ec23; }.msg .who { display:block;color:#5f9db2;font:8px var(--mono);letter-spacing:.1em;margin-bottom:4px; }
+    
+    .composer { margin:0 13px 13px;padding:7px;display:flex;align-items:center;gap:8px;background:#080f19;border:1px solid #86c7dc22;border-radius:7px; }.composer input { flex:1;min-width:0;background:transparent;border:0;outline:0;color:#e3f0f5;font-size:11px;padding:7px; }.composer input::placeholder { color:#5b7182; }
+    .voice-note { color:#526d7d;font:8px var(--mono);margin:-7px 18px 9px; }
+    .mic,.send { width:30px;height:30px;border:0;border-radius:5px;background:transparent;color:#8aa2b1; }.mic:hover { color:var(--cyan);background:#112530; }.send { background:#1b829c;color:white;box-shadow:0 0 14px #23a9c422; }.send:hover { background:#22a5bd; }
+    .tasks { padding:4px 15px 10px; }.task { display:flex;align-items:center;gap:10px;padding:11px 1px;border-bottom:1px solid #89bbd20d; }.task:last-child { border:0; }.task-check { width:14px;height:14px;border:1px solid #4a8397;border-radius:3px;flex:none; }.task-text { flex:1;font-size:10px;color:#a9bac5; }.task-text.done { text-decoration:line-through;color:#5f7789; }.tag { font:8px var(--mono);color:#77c8d6;border:1px solid #55d9ec24;padding:4px 6px;border-radius:3px; }.tag.wait { color:#c8a85f;border-color:#c8a85f33; }
+    .task-count { display:inline-grid;place-items:center;min-width:19px;height:18px;margin-left:7px;padding:0 4px;border:1px solid #55d9ec2b;border-radius:4px;color:#82dce9;font:9px var(--mono);letter-spacing:0;vertical-align:middle; }
+    .footer { display:none; }
+    .utility-view:not([hidden]) { flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column; }.utility-content { flex:1;height:100%;min-height:0;display:grid;grid-template-columns:minmax(0,1fr); }.utility-content>.panel { height:100%;min-height:0; }.utility-card { height:100%;min-height:0;padding:16px; }.utility-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px; }.utility-action { width:100%;text-align:left;padding:14px;border:1px solid var(--line);border-radius:7px;background:#0a1420;color:#d7e8ee; }.utility-action small { display:block;margin-top:7px;color:#698294;font:9px var(--mono); }.utility-list { display:grid;gap:8px; }.utility-row { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #8ab8ca14;border-radius:5px;background:#09131e;color:#afc2ce;font-size:11px; }.utility-row strong { color:#7ce0bf;font:9px var(--mono); }.utility-log { display:grid;gap:8px; }.settings-control { display:grid;gap:8px;margin:18px 0;color:#9db3c1;font-size:11px; }.settings-control select,.settings-control input { max-width:320px;background:#08111c;color:#d9eef4;border:1px solid var(--line);padding:9px;border-radius:5px; }
+    .toast { position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#102432;border:1px solid #55d9ec40;color:#c7f4f7;border-radius:6px;padding:11px 15px;font:10px var(--mono);transition:.25s;z-index:3; }.toast.show { opacity:1;transform:translate(-50%,0); }
+    @media(max-width:720px){ .shell{grid-template-columns:68px minmax(0,1fr)} aside{padding:22px 10px}.brand{justify-content:center;padding:0}.brand-copy,.section-label,.nav .label,.profile-copy{display:none}.nav button{justify-content:center;padding:11px 0}.profile{justify-content:center;padding:15px 0 0}.grid,.lower{grid-template-columns:minmax(0,1.4fr) minmax(230px,.8fr)} main{padding-left:15px;padding-right:15px}.panel-head{padding:10px 12px} }
+    @media(max-width:650px){ .shell{grid-template-columns:54px minmax(0,1fr)} aside{padding:12px 5px;gap:12px}.grid{grid-template-columns:1fr}.side-stack{display:none}.lower{grid-template-columns:1fr;flex-basis:30vh}.lower>article:not(.chat){display:none}.core{transform:scale(.78)}.top-actions{gap:5px}.icon-btn{width:27px;height:27px} }
+    @media(max-height:720px){ main{padding-top:10px;padding-bottom:8px}.topbar{padding-bottom:9px}.greeting{margin:8px 0}.lower{flex-basis:24vh;min-height:145px}.core{transform:scale(.78)}.panel-head{padding-top:8px;padding-bottom:8px} }
+    @media(max-height:620px){ #activityPanel{display:none}.side-stack{grid-template-rows:minmax(110px,auto) minmax(125px,1fr)} }
+    @media(prefers-reduced-motion:reduce){.ring.one,.core-center{animation:none!important}}
+  </style>
+  <style id="jarvis-product-ui">
+    :root { --bg:#070b12;--panel:#0c1520;--panel2:#101c29;--line:rgba(112,183,216,.16);--muted:#91a4b6;--cyan:#66e4f3;--green:#70e2bb;--mono:"Cascadia Code","Consolas",monospace;--sans:"Segoe UI",Inter,Arial,sans-serif; }
+    html,body { width:100%;height:100%;overflow:hidden; }
+    body { background:radial-gradient(ellipse at 52% 18%,#102638 0,#080e17 48%,#060a10 100%);font-family:var(--sans); }
+    button { transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease; }
+    button:focus-visible,select:focus-visible,input:focus-visible { outline:2px solid #6be2f3;outline-offset:2px; }
+    .shell { grid-template-columns:252px minmax(0,1fr);height:100dvh;min-height:0;overflow:hidden; }
+    aside { padding:25px 17px 16px;gap:22px;background:linear-gradient(180deg,#080e17f5,#080d15f5);border-right:1px solid #77c8e01c; }
+    .brand { gap:13px;padding:0 8px 4px; }.brand-mark { width:39px;height:39px; }.brand-title { font-size:14px;letter-spacing:.2em; }.brand-sub { color:#8499ab;font-size:9px;letter-spacing:.12em; }
+    .section-label { color:#607c90;font-size:9px;letter-spacing:.17em;padding:0 10px; }
+    .nav { gap:6px; }.nav button { min-height:42px;padding:10px 12px;border-radius:9px;font-size:13px;color:#a2b3c1;gap:12px; }
+    .nav button:hover { background:#102430;border-color:#62d8ea25;color:#e7fbff;transform:translateX(2px); }
+    .nav button.active { background:linear-gradient(100deg,#103043,#0e202c);border-color:#61d9eb38;color:#eafcff;box-shadow:inset 2px 0 #63dfee; }
+    .nav .ico { width:18px;font-size:16px; }.profile { padding:15px 7px 0; }.avatar { width:34px;height:34px; }
+    main { width:100%;max-width:none;height:100dvh;min-height:0;overflow-x:hidden;overflow-y:auto;scrollbar-gutter:stable;padding:19px clamp(18px,2.5vw,38px) 30px; }
+    main::-webkit-scrollbar { width:10px; } main::-webkit-scrollbar-track { background:#08111b; } main::-webkit-scrollbar-thumb { background:#244c60;border:3px solid #08111b;border-radius:9px; } main::-webkit-scrollbar-thumb:hover { background:#397e91; }
+    .topbar { position:sticky;top:-19px;z-index:5;padding:5px 0 15px;background:linear-gradient(#080f18 78%,transparent);border-bottom-color:#82b8cf20; }
+    .crumb { font-size:10px;letter-spacing:.11em; }.top-actions { gap:11px; }.mode { border-radius:999px;padding:8px 12px;letter-spacing:.06em; }
+    .greeting { margin:20px 0 17px;align-items:center; }.greeting h1 { font-size:clamp(25px,2.3vw,35px);font-weight:650;letter-spacing:-.04em; }.greeting p { color:#9cabb8;font-size:13px; }
+    .clock { color:#8da3b5; }.clock strong { font-size:16px; }
+    .grid { flex:none;min-height:555px;grid-template-columns:minmax(0,1.55fr) minmax(310px,.9fr);gap:16px; }
+    .panel { background:linear-gradient(145deg,#101a26f2,#0a121cf5);border:1px solid #8ac1d51d;border-radius:13px;box-shadow:0 14px 34px #00000020; }
+    .panel-head { min-height:62px;padding:13px 16px;border-bottom-color:#86bdd219; }
+    .panel-title { font-size:10px;letter-spacing:.13em;color:#dce8ef;font-weight:700; }.eyebrow { color:#8398aa;font-size:9px;letter-spacing:.08em; }
+    .live { color:#81e7c8;font-size:9px; }.live:before { box-shadow:0 0 10px #7de5c5; }
+    .grid>.panel:first-child { overflow:hidden; }.core-panel { background:radial-gradient(ellipse at center,#10293a70 0,transparent 68%); }
+    .core-panel:before { opacity:.55; }.core-panel:after { border-color:#58d7eb16; }
+    #neuralCanvas { opacity:1; }.core { width:min(420px,96%); }.ring.one { border-color:#58d9eb22; }.ring.two { border-color:#58d9eb18; }.ring.three { border-color:#58d9eb28; }
+    .core-center { width:150px;height:174px; }.robot-eye { width:29px;height:14px; }.robot-mouth { width:38px;height:12px; }
+    .core-readout { top:20px;font-size:10px;letter-spacing:.2em;color:#a9eff7; }.core-coord { left:18px;bottom:18px;color:#7896a9;font-size:9px; }
+    .core-caption { bottom:17px;color:#91a9b9; }.core-caption strong { font-size:12px;color:#d6f7fb; }
+    .side-stack { grid-template-rows:auto minmax(145px,auto) minmax(160px,1fr);gap:12px;overflow:visible; }
+    #healthPanel { min-height:125px; }.metrics { gap:8px;padding:10px; }.metric { min-height:76px;padding:9px;background:#0a1420;border-color:#85b9cf20;border-radius:8px; }
+    .metric label,.metric small { font-size:8px;color:#8197a8; }.metric strong { margin:7px 0 3px;font-size:18px;color:#eef7fa; }
+    .vision { min-height:100px;padding:11px 13px;grid-template-columns:minmax(0,1fr) 92px; }.vision-copy { font-size:11px;line-height:1.5;color:#a1b1bd; }.vision-state { font-size:9px;color:#7fb3c1; }
+    .vision-video { border-radius:8px;border-color:#8bc5d32b; }
+    .activity { padding:5px 16px 10px; }.event { padding:10px 0; }.event p { font-size:11px;color:#c3d0d9; }.event small { color:#8299a8; }
+    .small-action { border-radius:7px;padding:8px 11px;color:#c4e3eb;font-size:9px; }.small-action:hover { background:#123243; }
+    .lower { flex:none;height:284px;min-height:284px;max-height:none;grid-template-columns:minmax(0,1.55fr) minmax(310px,.9fr);gap:16px;margin-top:16px; }
+    .chat { min-height:0; }.messages { padding:14px 16px;gap:10px; }.msg { max-width:88%;font-size:13px;line-height:1.55;padding:10px 12px;border-radius:9px;color:#d0dce4;background:#0e1b28;border-color:#86bfd018; }.msg.user { background:#123044;color:#e6f7fb;border-color:#69d5e52b; }.msg .who { font-size:9px;letter-spacing:.12em;color:#79bed0; }
+    .tasks { padding:6px 16px 12px; }.task { padding:12px 2px; }.task-text { font-size:12px;color:#c3d1d9; }.tag { font-size:9px; }
+    .task-count { min-width:21px;height:20px;font-size:10px; }
+    .utility-view:not([hidden]) { flex:none;min-height:calc(100dvh - 145px);overflow:visible; }.utility-content { flex:none;height:auto;min-height:360px;display:block;padding-top:14px; }.utility-content>.panel { height:auto;min-height:350px; }.utility-card { height:auto;min-height:350px;padding:22px; }
+    .utility-grid { gap:14px; }.utility-action { min-height:100px;padding:17px;border-radius:10px;font-size:14px; }.utility-action small { font-size:10px; }
+    .utility-row { padding:13px 14px;border-radius:8px;font-size:13px; }.settings-control { font-size:13px; }.settings-control select,.settings-control input { border-radius:7px; }
+    .toast { bottom:24px;border-radius:9px;font-size:11px; }
+    @media(max-width:1050px){ .shell { grid-template-columns:220px minmax(0,1fr); }aside { padding-left:13px;padding-right:13px; }.grid,.lower { grid-template-columns:minmax(0,1.3fr) minmax(290px,.9fr); }.metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }.side-stack { grid-template-rows:auto auto minmax(160px,1fr); } }
+    @media(max-width:760px){ .shell { grid-template-columns:68px minmax(0,1fr); }.brand { justify-content:center;padding:0; }.brand-copy,.section-label,.nav .label,.profile-copy { display:none; }.nav button { justify-content:center;padding:11px 0; }.profile { justify-content:center;padding:15px 0 0; }main { padding-left:14px;padding-right:14px; }.grid,.lower { grid-template-columns:minmax(0,1fr); }.grid { min-height:0; }.grid>.panel:first-child { min-height:460px; }.side-stack { display:grid;grid-template-rows:auto auto auto; }.lower { height:auto;min-height:0; }.lower>.panel { min-height:220px; }.lower>article:not(.chat) { display:block; }.chat { min-height:260px!important; }.utility-grid { grid-template-columns:1fr; } }
+     @media(max-width:520px){ .greeting { align-items:flex-start; }.clock { font-size:9px; }.clock strong { font-size:13px; }.core { transform:scale(.83); }.panel-head { padding:11px 12px; }.top-actions { gap:6px; }.mode { padding:7px 9px;font-size:8px; } }
+     /* Dashboard polish */
+     body { background:radial-gradient(ellipse at 55% 16%,#10283a 0%,#08111b 40%,#050912 78%); }
+     aside { background:rgba(5,9,16,.93);border-right-color:#72d8ed1c; }
+     .brand-mark { border-radius:10px;background:linear-gradient(145deg,#112c3b,#08131e); }
+     .nav button { position:relative;border-radius:9px;transition:background .18s ease,border-color .18s ease,color .18s ease; }
+     .nav button.active { background:linear-gradient(100deg,#123040,#0c1b28);border-color:#58d9ec35;box-shadow:inset 2px 0 #55d9ec,0 5px 18px #0003; }
+     .nav button:focus-visible,.icon-btn:focus-visible,.small-action:focus-visible { outline:2px solid #62e4f5;outline-offset:2px; }
+     .topbar { padding-bottom:14px;border-bottom-color:#78ccdf20; }
+     .mode { border-radius:999px;background:#102b29;border-color:#63d9b735;color:#a1ebcf; }
+     .mode:before { background:#64e0b2;box-shadow:0 0 10px #64e0b2; }
+     .greeting { margin-top:20px;margin-bottom:16px; }
+     h1 { color:#f1f7fa;letter-spacing:-.055em; }
+     .greeting p { color:#91a6b5; }
+     .grid,.lower { gap:14px; }
+     .panel { border-radius:13px;border-color:#78b8d321;background:linear-gradient(145deg,rgba(13,24,36,.97),rgba(7,13,22,.97));box-shadow:0 14px 40px #0003; }
+     .panel-head { background:linear-gradient(90deg,#ffffff05,transparent 78%);border-bottom-color:#8dcfe014; }
+     .panel-title { color:#d8e8ef;letter-spacing:.17em; }
+     .eyebrow { color:#7793a5; }
+     .live { color:#82e4be; }
+     .core-panel { background:radial-gradient(ellipse at 50% 46%,#11384a88 0%,#0a182644 40%,transparent 72%),linear-gradient(180deg,#08121d,#070c14); }
+     .core-panel:before { opacity:.34;background:radial-gradient(#6dd8ed25 .7px,transparent .8px);background-size:22px 22px;mask-image:radial-gradient(ellipse at center,black,transparent 71%); }
+     .core-panel:after { inset:14px;border:1px solid #73d8e80c;border-radius:11px;background:linear-gradient(90deg,transparent 50%,#55d9ec08 50.1%,transparent 50.2%); }
+     #neuralCanvas { z-index:1;opacity:1; }
+     .core-readout { top:25px;left:50%;right:auto;transform:translateX(-50%);padding:9px 13px;border:1px solid #55d9ec24;border-radius:999px;background:#07151dcc;backdrop-filter:blur(10px);font-size:9px;letter-spacing:.16em;white-space:nowrap; }
+     .core-readout span { display:inline-block;width:5px;height:5px;margin:0 8px 1px;border-radius:50%;background:#71edc2;color:transparent;box-shadow:0 0 10px #71edc2; }
+     .core-coord { left:25px;bottom:24px;padding:9px 11px;border:1px solid #72c9dc15;border-radius:7px;background:#07121bc9;line-height:1.9; }
+     .core-caption { bottom:22px;color:#7997a8;letter-spacing:.16em; }
+     .core-caption { z-index:2; }
+     .core-caption strong { color:#d8f5fa;font-weight:600;letter-spacing:.03em; }
+     .core-thinking .core-readout span { background:#9bb8ff;box-shadow:0 0 10px #9bb8ff; }
+     .core-speaking .core-readout span { background:#78f0f4;box-shadow:0 0 12px #78f0f4; }
+     .core-starting .core-readout span { background:#e0b761;box-shadow:0 0 9px #e0b761; }
+     .metric { border-color:#80c9dd1b;background:linear-gradient(145deg,#0b1925,#09131e);border-radius:9px;transition:border-color .2s ease,transform .2s ease; }
+     .metric:hover { border-color:#55d9ec55;transform:translateY(-1px); }
+     .event { border-bottom-color:#89bbd216; }
+     .vision-video { box-shadow:0 0 20px #0005; }
+     .chat,.lower>.panel { border-radius:13px; }
+     .composer { border-color:#69cbe12b;background:#07121e; }
+     .send { background:linear-gradient(135deg,#168ba5,#1a6d91); }
+     .small-action,.icon-btn { border-radius:7px; }
+     @media(max-width:1050px) { .grid,.lower { gap:12px; } }
+     @media(max-width:760px) { .core-coord { left:14px;bottom:15px;padding:7px 8px;font-size:8px; }.core-caption { bottom:15px; }.core-readout { top:17px; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand"><div class="brand-mark"><span></span></div><div class="brand-copy"><div class="brand-title">J.A.R.V.I.S.</div><div class="brand-sub">PERSONAL INTELLIGENCE</div></div></div>
+      <div class="section-label">Workspace</div>
+      <nav class="nav">
+        <button class="active" data-name="Overview"><span class="ico">◈</span><span class="label">Overview</span></button>
+        <button data-name="Assistant"><span class="ico">⌁</span><span class="label">Assistant</span></button>
+        <button data-name="Tasks"><span class="ico">▤</span><span class="label">Tasks & plans</span></button>
+        <button data-name="Automations"><span class="ico">⟳</span><span class="label">Automations</span></button>
+        <button data-name="Memory"><span class="ico">⌘</span><span class="label">Memory</span></button>
+      </nav>
+      <div class="section-label">System</div>
+      <nav class="nav">
+        <button data-name="Integrations"><span class="ico">⤢</span><span class="label">Integrations</span></button>
+        <button data-name="Settings"><span class="ico">⚙</span><span class="label">Settings</span></button>
+      </nav>
+      <div class="side-spacer"></div>
+      <div class="profile"><div class="avatar">U</div><div class="profile-copy"><strong>Your workspace</strong><small>LOCAL AGENT</small></div></div>
+    </aside>
+    <main>
+      <header class="topbar"><div class="crumb">SYSTEM / <b>OVERVIEW</b></div><div class="top-actions"><span class="mode" id="brainStatus">LOCAL AI · CHECKING</span><button class="icon-btn" title="Settings" onclick="document.querySelector('.nav button[data-name=Settings]').click()">⚙</button></div></header>
+      <section class="greeting" id="greeting"><div><h1>Good evening.</h1><p>Your personal intelligence system is standing by.</p></div><div class="clock"><strong id="clock">--:--:--</strong><span id="date">LOCAL TIME</span></div></section>
+      <section class="grid" id="overviewGrid">
+        <article class="panel">
+          <div class="panel-head"><div><div class="panel-title">NEURAL ENGINE</div><div class="eyebrow">PERSONAL ASSISTANT · NODE 01</div></div><span class="live">LOCAL · LIVE</span></div>
+          <div class="core-panel" id="corePanel"><canvas id="neuralCanvas" aria-label="Animated JARVIS robot face surrounded by a rotating neural particle field" role="img"></canvas><div class="core-readout" id="coreReadout">JARVIS CORE <span>•</span> STARTING</div><div class="core-coord">PARTICLE FIELD <b id="nodeCount">000</b><br>MODE <b id="coreMode">STARTING</b></div><div class="core-caption"><strong>At your service</strong>VOICE · CHAT · GESTURES</div></div>
+        </article>
+        <div class="side-stack">
+          <article class="panel" id="healthPanel"><div class="panel-head"><div><div class="panel-title">LAPTOP HEALTH</div><div class="eyebrow">LIVE WINDOWS SYSTEM READINGS</div></div><span class="live" id="healthUpdated">SAMPLING…</span></div><div class="metrics">
+            <div class="metric"><label>CPU LOAD</label><strong id="cpuMetric">--</strong><small id="cpuDetail">SAMPLE STARTING</small></div>
+            <div class="metric"><label>MEMORY</label><strong id="ramMetric">--</strong><small id="ramDetail">WAITING</small></div>
+            <div class="metric"><label>BATTERY</label><strong id="batteryMetric">--</strong><small id="batteryDetail">CHECKING</small></div>
+            <div class="metric"><label>DISK USED</label><strong id="diskMetric">--</strong><small id="diskDetail">CHECKING</small></div>
+          </div></article>
+          <article class="panel"><div class="panel-head"><div><div class="panel-title">CAMERA & GESTURES</div><div class="eyebrow">CAMERA STARTS · HAND CONTROL ON COMMAND</div></div><span class="eyebrow" id="cameraBadge">STARTING</span></div><div class="vision"><p class="vision-copy">Say “hand gesture activate.” Index finger moves the pointer; quick thumb-index tap clicks; hold the pinch and move up/down to scroll.</p><video id="webcam" class="vision-video" autoplay playsinline muted></video><div class="vision-state" id="visionState">REQUESTING CAMERA ACCESS…</div></div></article>
+          <article class="panel" id="activityPanel"><div class="panel-head"><div><div class="panel-title">ACTIVITY LOG</div><div class="eyebrow">RECENT SYSTEM EVENTS</div></div><button class="icon-btn" title="Refresh" onclick="toast('Activity is up to date')">↻</button></div><div class="activity" id="activity">
+            <div class="event"><span class="dot"></span><p>JARVIS interface initialized</p><small>NOW</small></div>
+            <div class="event"><span class="dot amber"></span><p>Local AI model needs first download</p><small>SETUP</small></div>
+            <div class="event"><span class="dot"></span><p>Workspace running locally</p><small>READY</small></div>
+          </div></article>
+        </div>
+      </section>
+      <section class="lower" id="lowerPanel">
+        <article class="panel chat" id="chatPanel"><div class="panel-head"><div><div class="panel-title">TALK TO JARVIS</div><div class="eyebrow" id="voiceStatus">MIC STARTING · SPEAK ANY COMMAND</div></div><button class="small-action" id="sensorToggle">STARTING…</button></div><div class="messages" id="messages"></div><div class="voice-note">ALWAYS LISTENING · BROWSER SPEECH SERVICE MAY PROCESS AUDIO ONLINE</div></article>
+        <article class="panel" id="taskPanel"><div class="panel-head"><div><div class="panel-title">YOUR TASK QUEUE <span class="task-count" id="taskCount">00</span></div><div class="eyebrow">SPEAK: “REMEMBER TO…”</div></div><button class="icon-btn" onclick="toast('Say: Remember to …')" title="Add a task by voice">＋</button></div><div class="tasks" id="tasks"><div class="task"><button class="task-check" aria-label="Complete task"></button><span class="task-text">Install local AI model</span><span class="tag wait">SETUP</span></div><div class="task"><button class="task-check" aria-label="Complete task"></button><span class="task-text">Try your first voice command</span><span class="tag">NEXT</span></div></div></article>
+      </section>
+      <section class="utility-view" id="utilityView" hidden><div class="panel-head"><div><div class="panel-title" id="utilityTitle"></div><div class="eyebrow" id="utilityHint"></div></div><span class="live">LOCAL WORKSPACE</span></div><div class="utility-content" id="utilityContent"></div></section>
+      <footer class="footer"><span>J.A.R.V.I.S. · LOCAL DESKTOP ASSISTANT</span><span>EARLY BUILD &nbsp; · &nbsp; LOCAL MODEL · CAMERA ACTIVE WHILE RUNNING</span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script>
+    const $ = (s) => document.querySelector(s);
+    window.addEventListener('error',e=>{if(!e.message)return;console.error(e.error||e.message);const status=$('#voiceStatus');if(status)status.textContent='UI ERROR · '+e.message.slice(0,52)});
+    window.addEventListener('unhandledrejection',e=>{const message=String(e.reason?.message||e.reason||'Unknown browser error');console.error(e.reason);const status=$('#voiceStatus');if(status)status.textContent='UI ERROR · '+message.slice(0,52)});
+    function tick(){ const now=new Date(); $('#clock').textContent=now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}); $('#date').textContent=now.toLocaleDateString([], {weekday:'long',month:'long',day:'numeric'}).toUpperCase(); }
+    tick(); setInterval(tick,1000);
+    let toastTimer; function toast(message){ const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2300); }
+    function addActivity(message,label='NOW'){ const row=document.createElement('div');row.className='event';row.innerHTML='<span class="dot"></span><p></p><small></small>';row.querySelector('p').textContent=message;row.querySelector('small').textContent=label;$('#activity').prepend(row);while($('#activity').children.length>4)$('#activity').lastElementChild.remove(); }
+    function taskData(){return [...document.querySelectorAll('.task')].map(row=>({text:row.querySelector('.task-text').textContent,done:row.querySelector('.task-text').classList.contains('done'),tag:row.querySelector('.tag').textContent}));}
+    function saveTasks(){try{localStorage.setItem('jarvis-tasks',JSON.stringify(taskData()));}catch{}}
+    function renderTasks(){let saved;try{saved=JSON.parse(localStorage.getItem('jarvis-tasks')||'null')}catch{}if(!Array.isArray(saved))return;$('#tasks').replaceChildren();saved.forEach(item=>{const row=document.createElement('div');row.className='task';const check=document.createElement('button');check.className='task-check';check.setAttribute('aria-label','Complete task');const label=document.createElement('span');label.className='task-text';label.textContent=item.text;if(item.done){label.classList.add('done');check.style.background='#267b70';check.style.borderColor='#59d8b7'}const tag=document.createElement('span');tag.className='tag';tag.textContent=item.tag||'CAPTURED';row.append(check,label,tag);$('#tasks').append(row)});updateCount()}
+    function addTask(text){ const row=document.createElement('div');row.className='task';const check=document.createElement('button');check.className='task-check';check.setAttribute('aria-label','Complete task');const label=document.createElement('span');label.className='task-text';label.textContent=text;const tag=document.createElement('span');tag.className='tag';tag.textContent='CAPTURED';row.append(check,label,tag);$('#tasks').prepend(row);while($('#tasks').children.length>5)$('#tasks').lastElementChild.remove();updateCount();saveTasks(); }
+    function updateCount(){ $('#taskCount').textContent=String([...document.querySelectorAll('.task-text')].filter(x=>!x.classList.contains('done')).length).padStart(2,'0'); }
+    renderTasks();
+    $('#tasks').addEventListener('click',e=>{if(e.target.classList.contains('task-check')){const label=e.target.nextElementSibling;label.classList.toggle('done');e.target.style.background=label.classList.contains('done')?'#267b70':'transparent';e.target.style.borderColor=label.classList.contains('done')?'#59d8b7':'#4a8397';updateCount();saveTasks();}});
+    let history=[],cameraStream=null,gestureRecognizer=null,handControl=false,lastGestureFrame=0,lastPinch=false,lastSentPointer=0,recognition=null,processing=false,speakingNow=false,jarvisActive=true,speechBlocked=false,coreState='starting';
+    const CHAT_MEMORY_KEY='jarvis-chat-history-v1',MAX_CHAT_HISTORY=50;
+    function loadChatHistory(){try{const saved=JSON.parse(localStorage.getItem(CHAT_MEMORY_KEY)||'[]');if(!Array.isArray(saved))return[];return saved.filter(item=>item&&['user','assistant'].includes(item.role)&&typeof item.content==='string'&&item.content.trim()).slice(-MAX_CHAT_HISTORY).map(item=>({role:item.role,content:item.content.slice(0,6000)}))}catch{return[]}}
+    function saveChatHistory(){try{localStorage.setItem(CHAT_MEMORY_KEY,JSON.stringify(history.slice(-MAX_CHAT_HISTORY)))}catch(err){console.warn('JARVIS could not save local chat memory:',err)}}
+    function rememberChatMessage(role,content){history.push({role,content:String(content).slice(0,6000)});if(history.length>MAX_CHAT_HISTORY)history=history.slice(-MAX_CHAT_HISTORY);saveChatHistory()}
+    function clearChatHistory(){history=[];try{localStorage.removeItem(CHAT_MEMORY_KEY)}catch(err){console.warn('JARVIS could not clear local chat memory:',err)}}
+    history=loadChatHistory();
+    let speechLanguage=localStorage.getItem('jarvis-language')||'hi-IN',voiceRate=Number(localStorage.getItem('jarvis-voice-rate')||'1'),voiceCooldownUntil=0,lastAssistantSpeech='',lastAssistantEnd=0,lastSubmittedTranscript='',lastSubmittedAt=0,ttsGeneration=0,kokoroEngine=null,kokoroLoading=null,kokoroPlayer=null;
+    function normalizeSpeech(text){return String(text).toLocaleLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim()}
+    function chooseSpeechVoice(text){const voices=speechSynthesis.getVoices();const selected=localStorage.getItem('jarvis-voice-id');if(selected){const saved=voices.find(v=>`${v.name}|${v.lang}`===selected);if(saved)return saved}if(!voices.length)return null;const base=/[\u0900-\u097F]/.test(text)?'hi':speechLanguage.slice(0,2).toLowerCase();const exact=base==='hi'?'hi-in':speechLanguage.toLowerCase();const score=v=>{const lang=v.lang.toLowerCase(),name=v.name.toLowerCase();let n=0;if(lang===exact)n+=70;else if(lang.startsWith(base+'-'))n+=48;if(/natural|neural|online|premium/i.test(name))n+=42;if(/swara|neerja|aarav|google/i.test(name))n+=12;if(v.localService===false)n+=3;if(v.default)n+=1;return n};return [...voices].sort((a,b)=>score(b)-score(a))[0]||null}
+    function likelyAssistantEcho(text){if(Date.now()-lastAssistantEnd>2800)return false;const heard=normalizeSpeech(text).split(' ').filter(Boolean);const spoken=new Set(normalizeSpeech(lastAssistantSpeech).split(' ').filter(Boolean));if(heard.length<2||spoken.size<2)return false;return heard.filter(word=>spoken.has(word)).length/heard.length>=.72}
+    function addMessage(text,who='JARVIS',isUser=false){const row=document.createElement('div');row.className='msg'+(isUser?' user':'');const label=document.createElement('span');label.className='who';label.textContent=who;row.append(label);const safeText=String(text);const linkPattern=/http:\/\/127\.0\.0\.1:\d+\//g;let last=0;for(const match of safeText.matchAll(linkPattern)){row.append(document.createTextNode(safeText.slice(last,match.index)));const link=document.createElement('a');link.href=match[0];link.target='_blank';link.rel='noopener noreferrer';link.textContent=match[0];row.append(link);last=match.index+match[0].length}row.append(document.createTextNode(safeText.slice(last)));const messages=$('#messages');messages.append(row);while(messages.children.length>50)messages.firstElementChild.remove();messages.scrollTop=messages.scrollHeight;return row}
+    function restoreChatHistory(){if(!history.length)return;const messages=$('#messages');messages.replaceChildren();for(const item of history)addMessage(item.content,item.role==='user'?'YOU':'JARVIS',item.role==='user')}
+    restoreChatHistory();
+    function setCoreState(state){coreState=state;$('#coreMode').textContent=state.toUpperCase();$('#corePanel').classList.remove('core-listening','core-thinking','core-speaking','core-starting');$('#corePanel').classList.add('core-'+state);window.requestJarvisCoreDraw?.();const readout=$('#coreReadout'),dot=document.createElement('span');dot.textContent='•';readout.replaceChildren(document.createTextNode('JARVIS CORE '),dot,document.createTextNode(' '+state.toUpperCase()))}
+    function finishSpeaking(generation,status='MIC LIVE · SPEAK ANY COMMAND'){if(generation!==ttsGeneration)return;speakingNow=false;lastAssistantEnd=Date.now();voiceCooldownUntil=lastAssistantEnd+850;$('#voiceStatus').textContent=status;setCoreState('listening');if(jarvisActive&&!processing){clearTimeout(startListeningTimer);startListeningTimer=setTimeout(startListening,850)}}
+    async function loadKokoro(){if(kokoroEngine)return kokoroEngine;if(kokoroLoading)return kokoroLoading;const state=$('#kokoroState');if(state)state.textContent='DOWNLOADING MODEL · FIRST RUN';if($('#voiceStatus'))$('#voiceStatus').textContent='LOADING KOKORO VOICE · FIRST RUN MAY TAKE A MINUTE';kokoroLoading=(async()=>{const {KokoroTTS}=await import('https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm');kokoroEngine=await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX',{dtype:'q8',device:'wasm',progress_callback:(info)=>{const pct=Number.isFinite(info?.progress)?Math.round(info.progress):null;const line=pct===null?'DOWNLOADING '+String(info?.file||'KOKORO MODEL').split('/').pop().toUpperCase():'DOWNLOADING MODEL · '+pct+'%';if($('#kokoroState'))$('#kokoroState').textContent=line;if($('#voiceStatus'))$('#voiceStatus').textContent='KOKORO SETUP · '+line}});if($('#kokoroState'))$('#kokoroState').textContent='READY · LOCAL VOICE';return kokoroEngine})().catch(err=>{kokoroLoading=null;if($('#kokoroState'))$('#kokoroState').textContent='KOKORO UNAVAILABLE · SYSTEM VOICE FALLBACK';console.warn('Kokoro could not load:',err);throw err});return kokoroLoading}
+    function speakWithSystem(text,generation){if(!('speechSynthesis'in window)){finishSpeaking(generation,'VOICE OUTPUT NOT SUPPORTED');return}const utterance=new SpeechSynthesisUtterance(text),voice=chooseSpeechVoice(text);if(voice)utterance.voice=voice;utterance.lang=voice?.lang||(/[\u0900-\u097F]/.test(text)?'hi-IN':speechLanguage);utterance.rate=voiceRate;utterance.pitch=1;utterance.volume=1;utterance.onstart=()=>{if(generation!==ttsGeneration)return;if(text===startupGreeting)startupGreetingPending=false;$('#voiceStatus').textContent='JARVIS SPEAKING · '+(voice?.name||'SYSTEM VOICE');setCoreState('speaking')};utterance.onend=()=>finishSpeaking(generation);utterance.onerror=e=>{if(generation!==ttsGeneration)return;if(text===startupGreeting&&e.error==='not-allowed'){if(pageInteracted&&!startupGreetingRetry){startupGreetingRetry=true;say(startupGreeting);return}startupGreetingPending=!pageInteracted;finishSpeaking(generation,startupGreetingPending?'CLICK ONCE TO ENABLE JARVIS VOICE':'SYSTEM VOICE ERROR · '+e.error);return}finishSpeaking(generation,'SYSTEM VOICE ERROR · '+e.error)};speechSynthesis.resume();speechSynthesis.speak(utterance)}
+    function say(text){speakingNow=true;setCoreState('speaking');recognition?.abort();if('speechSynthesis'in window)speechSynthesis.cancel();if(kokoroPlayer){const oldPlayer=kokoroPlayer;oldPlayer.pause();URL.revokeObjectURL(oldPlayer.src);kokoroPlayer=null}const generation=++ttsGeneration;lastAssistantSpeech=text;const devanagari=/[\u0900-\u097F]/.test(text);if(devanagari){speakWithSystem(text,generation);return}if(!kokoroEngine){loadKokoro().catch(()=>{});speakWithSystem(text,generation);return}const engine=kokoroEngine;const voiceId=localStorage.getItem('jarvis-kokoro-voice')||'af_heart';engine.generate(text,{voice:voiceId,speed:voiceRate}).then(output=>{if(generation!==ttsGeneration)return;const audio=new Audio(URL.createObjectURL(output.toBlob()));kokoroPlayer=audio;audio.onplay=()=>{if(text===startupGreeting)startupGreetingPending=false};audio.onended=()=>{URL.revokeObjectURL(audio.src);kokoroPlayer=null;finishSpeaking(generation)};audio.onerror=()=>{URL.revokeObjectURL(audio.src);kokoroPlayer=null;speakWithSystem(text,generation)};$('#voiceStatus').textContent='JARVIS SPEAKING · KOKORO '+voiceId.toUpperCase();setCoreState('speaking');audio.play().catch(()=>speakWithSystem(text,generation))}).catch(()=>{if(generation===ttsGeneration)speakWithSystem(text,generation)})}
+    function getCameraFrame(){if(!cameraStream||!$('#webcam').videoWidth)return null;const canvas=document.createElement('canvas');canvas.width=640;canvas.height=Math.round(640*$('#webcam').videoHeight/$('#webcam').videoWidth);canvas.getContext('2d').drawImage($('#webcam'),0,0,canvas.width,canvas.height);return canvas.toDataURL('image/jpeg',.72).split(',')[1]}
+    async function sendChat(text){
+      if(processing)return;processing=true;rememberChatMessage('user',text);addMessage(text,'YOU',true);setCoreState('thinking');
+      if(/hand|haath|gesture|जेस्चर|हाथ|कंट्रोल/i.test(text)&&/activate|start|enable|on|chalu|shuru|एक्टिवेट|चालू|शुरू/i.test(text)){const ready=await activateGestures();const reply=ready?'Hand gesture control chalu ho gaya. Index finger se pointer move karo, thumb-index pinch se click aur scroll karo.':'Hand gesture start nahi hua. Camera permission aur internet check karo.';addMessage(reply);rememberChatMessage('assistant',reply);processing=false;say(reply);return}
+      if(/hand|haath|gesture|जेस्चर|हाथ|कंट्रोल/i.test(text)&&/deactivate|disable|stop|off|band|rok|बंद|रोक/i.test(text)){await setHandControl(false);const reply='Hand gesture control band kar diya. Voice aur camera chalu rahenge.';addMessage(reply);rememberChatMessage('assistant',reply);processing=false;say(reply);return}
+      const frame=getCameraFrame();if(/\b(add task|remind me|remember this|todo|task)\b|yaad rakh|yaad dilao|task add|mujhe yaad/i.test(text)){addTask(text);addActivity('Task captured: '+text.slice(0,38))}const loading=addMessage('Ek second, main soch raha hoon…');
+      try{const messages=history.slice(-12).map((m,i,a)=>({...m,...(i===a.length-1&&frame?{image:frame}:{})}));const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages})});const data=await res.json();if(!res.ok)throw new Error(data.error||'Local AI unavailable');loading.remove();const reply=data.reply||'Main sun raha hoon.';addMessage(reply);rememberChatMessage('assistant',reply);if(data.actions?.length)data.actions.forEach(a=>{if(a.result?.ok)addActivity(a.result.message);if(a.name==='create_website'&&a.result?.ok){const preview=`Website preview: ${a.result.preview_url}\nProject folder: ${a.result.project_folder}\n${a.result.vscode_opened?'Opened in VS Code.':'VS Code nahi mila; project folder khol diya.'}`;addMessage(preview,'WEBSITE');rememberChatMessage('assistant',preview)}});processing=false;say(reply)}catch(err){loading.remove();processing=false;const message=err.message||'JARVIS service unavailable';addMessage(message,'SYSTEM');toast(message);say(message)}
+    }
+    let startListeningTimer=null;
+    function startListening(){if(!jarvisActive||processing||speakingNow||recognition||speechBlocked)return;if(Date.now()<voiceCooldownUntil){clearTimeout(startListeningTimer);startListeningTimer=setTimeout(startListening,voiceCooldownUntil-Date.now());return}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('#voiceStatus').textContent='VOICE INPUT NOT SUPPORTED · OPEN IN CHROME / EDGE';$('#sensorToggle').textContent='VOICE NOT SUPPORTED';setCoreState('listening');return}const rec=new SR();recognition=rec;rec.lang=speechLanguage;rec.continuous=false;rec.interimResults=false;rec.maxAlternatives=5;rec.onstart=()=>{$('#voiceStatus').textContent='MIC LIVE · SPEAK ANY COMMAND';$('#sensorToggle').textContent='PAUSE JARVIS';setCoreState('listening')};rec.onresult=e=>{const result=e.results[e.results.length-1];const candidates=Array.from(result).map(item=>item.transcript.trim()).filter(Boolean);const spoken=candidates[0]||'',normalized=normalizeSpeech(spoken),now=Date.now();if(!spoken||now<voiceCooldownUntil||likelyAssistantEcho(spoken))return;if(normalized===lastSubmittedTranscript&&now-lastSubmittedAt<5000)return;lastSubmittedTranscript=normalized;lastSubmittedAt=now;sendChat(spoken)};rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){speechBlocked=true;$('#voiceStatus').textContent='MIC BLOCKED · ALLOW MICROPHONE FOR LOCALHOST';$('#sensorToggle').textContent='RETRY VOICE';toast('Browser address bar ke lock/camera icon par click karke localhost ka Microphone Allow karo, phir RETRY VOICE dabao.')}else if(e.error==='audio-capture'){speechBlocked=true;$('#voiceStatus').textContent='NO MICROPHONE FOUND · CHECK WINDOWS INPUT DEVICE';$('#sensorToggle').textContent='RETRY VOICE'}else if(e.error==='network'){speechBlocked=true;$('#voiceStatus').textContent='SPEECH SERVICE NETWORK ERROR · CHECK INTERNET';$('#sensorToggle').textContent='RETRY VOICE'}else if(e.error!=='no-speech'&&e.error!=='aborted')$('#voiceStatus').textContent='MIC ERROR · '+e.error};rec.onend=()=>{if(recognition===rec)recognition=null;if(jarvisActive&&!processing&&!speakingNow&&!speechBlocked){clearTimeout(startListeningTimer);startListeningTimer=setTimeout(startListening,600)}};try{rec.start()}catch(err){recognition=null;speechBlocked=true;$('#voiceStatus').textContent='MIC START FAILED · CHECK BROWSER PERMISSION';$('#sensorToggle').textContent='RETRY VOICE';console.warn(err)}}
+    async function cameraStart(){if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera requires localhost in Chrome or Edge.');cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640}},audio:false});const video=$('#webcam');video.srcObject=cameraStream;await video.play();$('#cameraBadge').textContent='ON';$('#cameraBadge').style.color='#7ce0bf';$('#visionState').textContent='CAMERA READY · SAY “HAND GESTURE ACTIVATE”'}
+    async function cameraStop(){if(cameraStream)cameraStream.getTracks().forEach(track=>track.stop());cameraStream=null;$('#webcam').srcObject=null;$('#cameraBadge').textContent='OFF';$('#cameraBadge').style.color='';$('#visionState').textContent='CAMERA OFF';if(gestureRecognizer){gestureRecognizer.close();gestureRecognizer=null}await setHandControl(false)}
+    async function initGestures(){if(gestureRecognizer)return true;try{const mp=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/+esm');const vision=await mp.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm');const options={baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task',delegate:'GPU'},runningMode:'VIDEO',numHands:1};try{gestureRecognizer=await mp.GestureRecognizer.createFromOptions(vision,options)}catch{options.baseOptions.delegate='CPU';gestureRecognizer=await mp.GestureRecognizer.createFromOptions(vision,options)}$('#visionState').textContent='GESTURE MODEL READY';return true}catch(err){$('#visionState').textContent='GESTURE MODEL NEEDS INTERNET';console.warn(err);return false}}
+    async function activateGestures(){if(!cameraStream){return false}if(!await initGestures())return false;await setHandControl(true);requestAnimationFrame(gestureLoop);return true}
+    let pointerX=.5,pointerY=.5,pinchStart=null;
+    function sendGestureAction(action){fetch('/api/gesture',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({x:pointerX,y:pointerY,...action})}).catch(()=>{})}
+    function gestureLoop(now){if(!cameraStream||!gestureRecognizer||!handControl)return;const video=$('#webcam');if(video.readyState>=2&&now-lastGestureFrame>50){lastGestureFrame=now;const result=gestureRecognizer.recognizeForVideo(video,now);if(result.landmarks?.length){const hand=result.landmarks[0],tip=hand[8],thumb=hand[4],pinch=Math.hypot(tip.x-thumb.x,tip.y-thumb.y)<.045;pointerX+=(1-tip.x-pointerX)*.34;pointerY+=(tip.y-pointerY)*.34;if(pinch){if(!pinchStart)pinchStart={startY:tip.y,lastY:tip.y,moved:false,time:now};const dy=pinchStart.lastY-tip.y;if(Math.abs(tip.y-pinchStart.startY)>.035)pinchStart.moved=true;if(pinchStart.moved&&Math.abs(dy)>.018){const amount=Math.max(-6,Math.min(6,Math.round(dy*80)));if(amount){sendGestureAction({scroll:amount});pinchStart.lastY=tip.y;$('#visionState').textContent=amount>0?'PINCH SCROLL · UP':'PINCH SCROLL · DOWN'}}else if(!pinchStart.moved)$('#visionState').textContent='PINCH · RELEASE TO CLICK';lastPinch=true}else{if(lastPinch&&pinchStart){if(!pinchStart.moved&&now-pinchStart.time<500){sendGestureAction({click:true});$('#visionState').textContent='CLICK'}pinchStart=null}lastPinch=false;if(now-lastSentPointer>40){lastSentPointer=now;sendGestureAction({})}$('#visionState').textContent='HAND CONTROL LIVE · INDEX TO MOVE'}}else{$('#visionState').textContent='SHOW ONE HAND TO MOVE POINTER';lastPinch=false;pinchStart=null}}requestAnimationFrame(gestureLoop)}
+    async function setHandControl(on){handControl=on;pinchStart=null;lastPinch=false;try{await fetch('/api/gesture-mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:on})})}catch{}if(cameraStream)$('#visionState').textContent=on?'HAND CONTROL LIVE · PINCH TO SCROLL':'CAMERA READY · SAY “HAND GESTURE ACTIVATE”'}
+    async function pauseJarvis(){jarvisActive=false;recognition?.abort();recognition=null;clearTimeout(startListeningTimer);ttsGeneration++;if('speechSynthesis'in window)speechSynthesis.cancel();if(kokoroPlayer){URL.revokeObjectURL(kokoroPlayer.src);kokoroPlayer.pause();kokoroPlayer=null}speakingNow=false;await cameraStop();$('#sensorToggle').textContent='RESUME JARVIS';$('#voiceStatus').textContent='MIC AND CAMERA PAUSED';setCoreState('starting')}
+    async function resumeJarvis(){jarvisActive=true;speechBlocked=false;if(recognition){const oldRecognition=recognition;recognition=null;try{oldRecognition.abort()}catch{}}$('#sensorToggle').textContent='STARTING…';$('#voiceStatus').textContent='STARTING VOICE · CHECKING MICROPHONE…';clearTimeout(startListeningTimer);startListeningTimer=setTimeout(startListening,250);try{await cameraStart()}catch(err){$('#visionState').textContent=err.name==='NotAllowedError'?'CAMERA PERMISSION NEEDED':'CAMERA UNAVAILABLE';toast('Allow camera access for localhost in browser settings')}}
+    $('#sensorToggle').addEventListener('click',()=>{if(speechBlocked||!jarvisActive){resumeJarvis();return}pauseJarvis()});
+    resumeJarvis();
+    const startupGreeting='Namaste! JARVIS at your service. Aaj ka din kaisa ja raha hai? Batao, kis cheez mein help karun?';
+    let startupGreetingPending=false,startupGreetingRetry=false,pageInteracted=false;
+    const retryStartupVoice=()=>{pageInteracted=true;if(startupGreetingPending&&jarvisActive&&!startupGreetingRetry){startupGreetingPending=false;startupGreetingRetry=true;say(startupGreeting)}};
+    window.addEventListener('pointerdown',retryStartupVoice,true);window.addEventListener('keydown',retryStartupVoice,true);
+    setTimeout(()=>{if(!jarvisActive)return;addMessage(startupGreeting);startupGreetingPending=true;say(startupGreeting)},800);
+    async function refreshHealth(){try{const res=await fetch('/api/health',{cache:'no-store'}),data=await res.json();const ready=data.ollama&&data.model_ready,warm=ready&&data.model_warm;$('#brainStatus').textContent=warm?'LOCAL AI · READY':ready?'LOCAL AI · WARMING':'LOCAL AI · SETUP NEEDED';}catch{$('#brainStatus').textContent='START JARVIS SERVER'}}
+    async function updateLaptopHealth(){try{const res=await fetch('/api/system-health',{cache:'no-store'}),h=await res.json();if(!h.available)throw new Error(h.message||'Unavailable');$('#cpuMetric').textContent=h.cpu_percent===null?'--':h.cpu_percent+'%';$('#cpuDetail').textContent=h.cpu_percent===null?'SAMPLING':'SYSTEM LOAD';$('#ramMetric').textContent=h.ram?h.ram.used_percent+'%':'--';$('#ramDetail').textContent=h.ram?h.ram.available_gb+' GB FREE':'UNAVAILABLE';$('#batteryMetric').textContent=h.battery.available&&h.battery.percent!==null?h.battery.percent+'%':'AC';$('#batteryDetail').textContent=h.battery.available?(h.battery.charging?'CHARGING':'ON BATTERY'):'NO BATTERY';$('#diskMetric').textContent=h.disk.used_percent+'%';$('#diskDetail').textContent=h.disk.free_gb+' GB FREE';$('#healthUpdated').textContent='UPTIME '+h.uptime_hours+'H'}catch{$('#healthUpdated').textContent='READINGS UNAVAILABLE'}}
+    refreshHealth();updateLaptopHealth();setInterval(refreshHealth,12000);setInterval(updateLaptopHealth,3000);
+    const defaultViews=[$('#greeting'),$('#overviewGrid'),$('#lowerPanel')],utility=$('#utilityView'),utilityContent=$('#utilityContent'),chatPanel=$('#chatPanel'),taskPanel=$('#taskPanel');
+    function utilityHeader(title,hint){$('#utilityTitle').textContent=title.toUpperCase();$('#utilityHint').textContent=hint.toUpperCase();utilityContent.replaceChildren()}
+    function makeUtilityCard(title,subtitle=''){const card=document.createElement('article');card.className='panel utility-card';const h=document.createElement('div');h.className='panel-title';h.textContent=title.toUpperCase();card.append(h);if(subtitle){const small=document.createElement('p');small.className='eyebrow';small.textContent=subtitle.toUpperCase();card.append(small)}if(title==='Voice & language'){const label=document.createElement('label');label.className='settings-control';label.textContent='Voice · natural / neural if installed';const voiceSelect=document.createElement('select');voiceSelect.id='speechVoice';label.append(voiceSelect);const preview=document.createElement('button');preview.className='small-action';preview.textContent='PREVIEW SELECTED VOICE';preview.onclick=()=>say('Namaste, main JARVIS hoon. Main aapki kaise madad kar sakta hoon?');card.append(label,preview);const refreshVoices=()=>{const voices=speechSynthesis.getVoices().filter(v=>/^(hi|en)(-|$)/i.test(v.lang));const selected=localStorage.getItem('jarvis-voice-id')||'';voiceSelect.replaceChildren();const automatic=document.createElement('option');automatic.value='';automatic.textContent='Automatic · best available';voiceSelect.append(automatic);voices.sort((a,b)=>Number(/natural|neural|online/i.test(b.name))-Number(/natural|neural|online/i.test(a.name)));for(const v of voices){const option=document.createElement('option');option.value=`${v.name}|${v.lang}`;option.textContent=`${v.name} · ${v.lang}${/natural|neural|online/i.test(v.name)?' · NATURAL':''}`;voiceSelect.append(option)}if(!voices.length){const empty=document.createElement('option');empty.value='';empty.textContent='No Hindi/English system voice found';voiceSelect.append(empty)}voiceSelect.value=selected};refreshVoices();speechSynthesis.addEventListener('voiceschanged',refreshVoices);voiceSelect.onchange=()=>{if(voiceSelect.value)localStorage.setItem('jarvis-voice-id',voiceSelect.value);else localStorage.removeItem('jarvis-voice-id');toast('Voice selection saved')}}utilityContent.append(card);return card}
+    async function renderUtility(name){for(const el of defaultViews)el.hidden=true;utility.hidden=false;utilityContent.replaceChildren();if(name==='Assistant'){utilityHeader('Assistant','Always-on Hindi / Hinglish voice chat');utilityContent.append(chatPanel);return}if(name==='Tasks'){utilityHeader('Tasks & plans','Capture tasks by voice · “remember to…”');utilityContent.append(taskPanel);return}if(name==='Automations'){utilityHeader('Automations','Windows sign-in and local assistant behavior');const card=makeUtilityCard('Windows sign-in','Start JARVIS automatically when your Windows account signs in.');const status=document.createElement('div');status.className='utility-row';status.innerHTML='<span>Launch JARVIS on sign-in</span><strong id="startupState">CHECKING</strong>';card.append(status);const button=document.createElement('button');button.className='small-action';button.style.marginTop='12px';button.textContent='CHECKING…';button.disabled=true;card.append(button);try{const res=await fetch('/api/startup-status');const data=await res.json();button.disabled=false;button.textContent=data.enabled?'DISABLE AUTO-START':'ENABLE AUTO-START';$('#startupState').textContent=data.enabled?'ON':'OFF';button.onclick=async()=>{button.disabled=true;const enabling=$('#startupState').textContent!=='ON';try{const response=await fetch('/api/startup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:enabling})}),result=await response.json();$('#startupState').textContent=result.enabled?'ON':'OFF';button.textContent=result.enabled?'DISABLE AUTO-START':'ENABLE AUTO-START';toast(result.message);if(!result.ok)toast(result.message)}catch(err){toast('Could not update Windows startup')}button.disabled=false}}catch{button.textContent='STARTUP STATUS UNAVAILABLE'}return}if(name==='Memory'){utilityHeader('Memory','Local memory · stored in this browser; clear anytime');const card=makeUtilityCard('Recent conversation');const list=document.createElement('div');list.className='utility-log';for(const item of history.slice(-8)){const row=document.createElement('div');row.className='utility-row';row.textContent=(item.role==='user'?'YOU · ':'JARVIS · ')+item.content;list.append(row)}card.append(list);const clear=document.createElement('button');clear.className='small-action';clear.style.marginTop='12px';clear.textContent='CLEAR LOCAL MEMORY';clear.onclick=()=>{clearChatHistory();$('#messages').replaceChildren();addMessage('Namaste! Main sun raha hoon.');renderUtility('Memory')};card.append(clear);return}if(name==='Integrations'){utilityHeader('Integrations','Open local apps and web services');const apps=[['whatsapp','WhatsApp','Personal desktop app, with web fallback'],['gmail','Gmail','Open Gmail in your browser'],['calculator','Calculator','Windows Calculator'],['files','File Explorer','Windows files']];const grid=document.createElement('div');grid.className='utility-grid';utilityContent.append(grid);for(const [app,label,detail] of apps){const button=document.createElement('button');button.className='utility-action';button.dataset.app=app;button.textContent=label;const small=document.createElement('small');small.textContent=detail;button.append(small);grid.append(button)}grid.addEventListener('click',async e=>{const button=e.target.closest('[data-app]');if(!button)return;try{const res=await fetch('/api/open-app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({app:button.dataset.app})}),data=await res.json();toast(data.message||'Opened');if(data.ok)addActivity(data.message)}catch{toast('Could not open app')}});return}if(name==='Settings'){utilityHeader('Settings','Tune JARVIS voice and active sensors');const card=makeUtilityCard('Voice & language','Changes apply to speech recognition and replies');card.innerHTML+='<label class="settings-control">Speaking language<select id="speechLanguage"><option value="hi-IN">Hindi / Hinglish · India</option><option value="en-IN">English · India</option></select></label><label class="settings-control">Speaking speed <span id="rateLabel"></span><input id="voiceRate" type="range" min="0.78" max="1.12" step="0.02"></label>';const systemVoiceSelect=$('#speechVoice');if(systemVoiceSelect){const fillSystemVoices=()=>{const selected=localStorage.getItem('jarvis-voice-id')||'';const voices=speechSynthesis.getVoices().filter(v=>/^(hi|en)(-|$)/i.test(v.lang));systemVoiceSelect.replaceChildren();const automatic=document.createElement('option');automatic.value='';automatic.textContent='Automatic · best available';systemVoiceSelect.append(automatic);for(const voice of voices){const option=document.createElement('option');option.value=`${voice.name}|${voice.lang}`;option.textContent=`${voice.name} · ${voice.lang}${/natural|neural|online/i.test(voice.name)?' · NATURAL':''}`;systemVoiceSelect.append(option)}if(!voices.length){const option=document.createElement('option');option.value='';option.textContent='No Hindi/English system voice found';systemVoiceSelect.append(option)}systemVoiceSelect.value=selected};fillSystemVoices();speechSynthesis.addEventListener('voiceschanged',fillSystemVoices);systemVoiceSelect.onchange=()=>{if(systemVoiceSelect.value)localStorage.setItem('jarvis-voice-id',systemVoiceSelect.value);else localStorage.removeItem('jarvis-voice-id');toast('Hindi fallback voice saved')};const systemPreview=systemVoiceSelect.parentElement.nextElementSibling;if(systemPreview){systemPreview.onclick=()=>{const sample='Namaste, main JARVIS hoon. Main aapki kaise madad kar sakta hoon?';speakingNow=true;setCoreState('speaking');recognition?.abort();speechSynthesis.cancel();const generation=++ttsGeneration;lastAssistantSpeech=sample;speakWithSystem(sample,generation)}}}const language=$('#speechLanguage'),rate=$('#voiceRate');language.value=speechLanguage;rate.value=String(voiceRate);$('#rateLabel').textContent=voiceRate.toFixed(2)+'×';language.onchange=()=>{speechLanguage=language.value;localStorage.setItem('jarvis-language',speechLanguage);recognition?.abort();toast('Voice language updated')};rate.oninput=()=>{$('#rateLabel').textContent=Number(rate.value).toFixed(2)+'×'};rate.onchange=()=>{voiceRate=Number(rate.value);localStorage.setItem('jarvis-voice-rate',String(voiceRate));toast('Speaking speed updated')};const kokoroBox=document.createElement('div');kokoroBox.className='utility-row';const kokoroLabel=document.createElement('span');kokoroLabel.textContent='Kokoro TTS · local after first download';const kokoroState=document.createElement('strong');kokoroState.id='kokoroState';kokoroState.textContent='NOT LOADED';kokoroBox.append(kokoroLabel,kokoroState);const kokoroVoiceLabel=document.createElement('label');kokoroVoiceLabel.className='settings-control';kokoroVoiceLabel.textContent='Kokoro voice · natural English voice';const kokoroVoiceSelect=document.createElement('select');kokoroVoiceSelect.id='kokoroVoice';for(const [id,name] of [['af_heart','Heart · recommended'],['af_bella','Bella'],['af_nicole','Nicole'],['bf_emma','Emma · British']]){const option=document.createElement('option');option.value=id;option.textContent=name;kokoroVoiceSelect.append(option)}kokoroVoiceSelect.value=localStorage.getItem('jarvis-kokoro-voice')||'af_heart';kokoroVoiceSelect.onchange=()=>{localStorage.setItem('jarvis-kokoro-voice',kokoroVoiceSelect.value);toast('Kokoro voice saved')};kokoroVoiceLabel.append(kokoroVoiceSelect);const kokoroActions=document.createElement('div');kokoroActions.style.cssText='display:flex;gap:9px;flex-wrap:wrap';const loadKokoroButton=document.createElement('button');loadKokoroButton.className='small-action';loadKokoroButton.textContent='LOAD KOKORO MODEL';loadKokoroButton.onclick=()=>loadKokoro().then(()=>toast('Kokoro voice ready · future speech runs locally')).catch(()=>toast('Kokoro setup failed · check internet, then retry'));const previewKokoroButton=document.createElement('button');previewKokoroButton.className='small-action';previewKokoroButton.textContent='PREVIEW JARVIS VOICE';previewKokoroButton.onclick=()=>loadKokoro().then(()=>say('Hello, I am JARVIS. How can I help you today.')).catch(()=>say('Hello, I am JARVIS. How can I help you today.'));kokoroActions.append(loadKokoroButton,previewKokoroButton);card.append(kokoroBox,kokoroVoiceLabel,kokoroActions);const sensors=document.createElement('p');sensors.className='vision-copy';sensors.textContent='Mic and camera start when JARVIS opens. Say “hand gesture activate” to enable pointer control. Use Pause JARVIS to stop sensors.';card.append(sensors);return}}
+    function selectSection(button){document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b===button));const name=button.dataset.name;$('.crumb b').textContent=name.toUpperCase();if(name==='Overview'){utility.hidden=true;for(const el of defaultViews)el.hidden=false;$('#lowerPanel').append(chatPanel,taskPanel);return}$('#lowerPanel').append(chatPanel,taskPanel);renderUtility(name)}
+    document.querySelectorAll('.nav button').forEach(button=>button.addEventListener('click',()=>selectSection(button)));
+    // JavaScript draws the complete reactive JARVIS face and neural particle globe.
+    (()=>{
+      const canvas=$('#neuralCanvas'),ctx=canvas.getContext('2d');if(!ctx)return;
+      const rows=18,cols=36,reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let w=0,h=0,dpr=1,frame=0,rotation=0,points=[],raf=0,gazeX=0,gazeY=0,targetX=0,targetY=0;
+      const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+      const stars=Array.from({length:170},(_,i)=>({angle:i*2.399,distance:.98+(i%11)*.025,phase:i*1.71,speed:i%2?1:-.64}));
+      function makeRoundedRect(x,y,width,height,radius){ctx.beginPath();ctx.moveTo(x+radius,y);ctx.lineTo(x+width-radius,y);ctx.quadraticCurveTo(x+width,y,x+width,y+radius);ctx.lineTo(x+width,y+height-radius);ctx.quadraticCurveTo(x+width,y+height,x+width-radius,y+height);ctx.lineTo(x+radius,y+height);ctx.quadraticCurveTo(x,y+height,x,y+height-radius);ctx.lineTo(x,y+radius);ctx.quadraticCurveTo(x,y,x+radius,y);ctx.closePath()}
+      function resize(){
+        const box=canvas.getBoundingClientRect();dpr=Math.min(window.devicePixelRatio||1,1.75);w=box.width;h=box.height;
+        canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+        points=[];
+        for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+          const phase=Math.sin(r*17.37+c*4.91),lat=-Math.PI/2+Math.PI*(r+.5)/rows+phase*.009,lon=Math.PI*2*c/cols+Math.sin(r*8.3+c*3.7)*.012;
+          points.push({r,c,lat,lon,phase,twinkle:(r*13+c*7)*.73});
+        }
+        $('#nodeCount').textContent=String(points.length).padStart(3,'0');scheduleDraw();
+      }
+      function drawOrbit(cx,cy,radius,state){
+        const speed=state==='thinking' ? 1.8 : state==='speaking' ? 1.35 : state==='listening' ? .82 : .45;
+        ctx.save();ctx.lineWidth=.8;ctx.strokeStyle='rgba(87,211,235,.16)';ctx.beginPath();ctx.ellipse(cx,cy,radius*1.1,radius*.79,rotation*.19,0,Math.PI*2);ctx.stroke();
+        ctx.strokeStyle='rgba(82,182,214,.12)';ctx.beginPath();ctx.ellipse(cx,cy,radius*.91,radius*1.13,-rotation*.12,0,Math.PI*2);ctx.stroke();
+        ctx.strokeStyle='rgba(98,228,245,.32)';ctx.lineWidth=1.2;ctx.beginPath();ctx.ellipse(cx,cy,radius*1.1,radius*.79,rotation*.19,rotation*speed,rotation*speed+.64);ctx.stroke();
+        for(let i=0;i<72;i++){
+          const angle=i*Math.PI*2/72+rotation*.12,major=i%6===0,len=major?7:3.2;
+          const x1=cx+Math.cos(angle)*radius*1.09,y1=cy+Math.sin(angle)*radius*.79;
+          const x2=cx+Math.cos(angle)*(radius*1.09+len),y2=cy+Math.sin(angle)*(radius*.79+len);
+          ctx.strokeStyle=major?'rgba(104,221,237,.28)':'rgba(79,175,203,.13)';ctx.lineWidth=major?1:.7;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+        }
+        for(let i=0;i<3;i++){
+          const angle=rotation*(i%2?-.72:1)+i*Math.PI*2/3,x=cx+Math.cos(angle)*radius*1.1,y=cy+Math.sin(angle)*radius*.79;
+          ctx.beginPath();ctx.fillStyle=i===0?'#b4faff':'#43cce8';ctx.shadowColor='#48dcf4';ctx.shadowBlur=10;ctx.arc(x,y,i===0?2.4:1.6,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+        }
+        ctx.restore();
+      }
+      function drawRobotFace(cx,cy,radius,state){
+        const bob=state==='speaking'?Math.sin(frame*.075)*2:state==='thinking'?Math.sin(frame*.035):0;
+        const faceW=radius*.78,faceH=radius*.84,halfW=faceW/2,halfH=faceH/2,accent=state==='thinking'?'#8fb4ff':'#5be6f4';
+        ctx.save();ctx.translate(cx,cy+bob);
+        const aura=ctx.createRadialGradient(0,0,faceW*.08,0,0,faceW*.92);aura.addColorStop(0,'rgba(31,151,190,.25)');aura.addColorStop(1,'rgba(15,55,78,0)');ctx.fillStyle=aura;ctx.beginPath();ctx.ellipse(0,0,faceW*.95,faceH*.9,0,0,Math.PI*2);ctx.fill();
+        ctx.shadowColor=accent;ctx.shadowBlur=state==='speaking'?28:state==='listening'?21:14;
+        ctx.beginPath();ctx.moveTo(0,-halfH);ctx.lineTo(halfW*.58,-halfH*.88);ctx.quadraticCurveTo(halfW*.98,-halfH*.77,halfW*.92,-halfH*.32);ctx.lineTo(halfW*.78,halfH*.38);ctx.quadraticCurveTo(halfW*.65,halfH*.83,0,halfH);ctx.quadraticCurveTo(-halfW*.65,halfH*.83,-halfW*.78,halfH*.38);ctx.lineTo(-halfW*.92,-halfH*.32);ctx.quadraticCurveTo(-halfW*.98,-halfH*.77,-halfW*.58,-halfH*.88);ctx.closePath();
+        const shell=ctx.createLinearGradient(-halfW,-halfH,halfW,halfH);shell.addColorStop(0,'rgba(22,74,98,.94)');shell.addColorStop(.48,'rgba(8,28,43,.98)');shell.addColorStop(1,'rgba(4,15,26,.98)');ctx.fillStyle=shell;ctx.fill();ctx.lineWidth=1.15;ctx.strokeStyle=state==='speaking'?'rgba(130,247,255,.9)':'rgba(84,221,239,.72)';ctx.stroke();ctx.shadowBlur=0;
+        ctx.beginPath();ctx.moveTo(-halfW*.65,-halfH*.61);ctx.quadraticCurveTo(0,-halfH*.77,halfW*.65,-halfH*.61);ctx.strokeStyle='rgba(118,231,242,.48)';ctx.lineWidth=1;ctx.stroke();
+        // Side plates and cheek lights give the face a compact helmet silhouette.
+        for(const side of [-1,1]){
+          ctx.fillStyle='rgba(43,147,175,.4)';makeRoundedRect(side<0?-halfW*.99:halfW*.82,-halfH*.15,halfW*.17,halfH*.34,3);ctx.fill();
+          ctx.fillStyle=accent;ctx.shadowColor=accent;ctx.shadowBlur=8;ctx.beginPath();ctx.arc(side*halfW*.88,0,1.7,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+        }
+        const blinkPhase=frame%255,blink=blinkPhase < 9 ? .12 + Math.abs(blinkPhase-4)*.19 : 1,eyeY=-halfH*.09,eyeOffset=halfW*.245,eyeW=halfW*.23,eyeH=halfH*.105;
+        for(const side of [-1,1]){
+          const ex=side*eyeOffset;ctx.save();ctx.translate(ex,eyeY);ctx.scale(1,blink);
+          makeRoundedRect(-eyeW,-eyeH,eyeW*2,eyeH*2,eyeH);ctx.fillStyle='rgba(1,13,23,.96)';ctx.fill();ctx.strokeStyle='rgba(102,230,247,.68)';ctx.lineWidth=1;ctx.stroke();
+          const iris=ctx.createRadialGradient(-eyeW*.12,-eyeH*.18,1,-eyeW*.08,0,eyeW*.9);iris.addColorStop(0,'#f4ffff');iris.addColorStop(.22,accent);iris.addColorStop(.7,'#1586ad');iris.addColorStop(1,'rgba(11,49,71,.65)');ctx.fillStyle=iris;ctx.shadowColor=accent;ctx.shadowBlur=14;ctx.beginPath();ctx.ellipse(clamp(gazeX,-1,1)*3.2,clamp(gazeY,-1,1)*1.3,eyeW*.79,eyeH*.72,0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+          ctx.fillStyle='#02101a';ctx.beginPath();ctx.arc(clamp(gazeX,-1,1)*3.8,clamp(gazeY,-1,1)*1.5,Math.max(1.7,eyeH*.36),0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(-eyeW*.2,-eyeH*.26,1.45,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.restore();
+          ctx.strokeStyle='rgba(107,230,242,.7)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(ex-eyeW*.8,eyeY-eyeH*1.65);ctx.lineTo(ex+eyeW*.65,eyeY-eyeH*1.8);ctx.stroke();
+        }
+        // A narrow nose bridge and live equalizer mouth are drawn in the same JS frame.
+        ctx.strokeStyle='rgba(77,197,221,.52)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,eyeY+eyeH*1.6);ctx.lineTo(0,halfH*.21);ctx.moveTo(-4,halfH*.21);ctx.lineTo(0,halfH*.27);ctx.lineTo(4,halfH*.21);ctx.stroke();
+        const mouthW=faceW*.42,mouthH=halfH*.25,mouthY=halfH*.38;makeRoundedRect(-mouthW/2,mouthY-mouthH/2,mouthW,mouthH,4);ctx.fillStyle='rgba(2,15,25,.94)';ctx.fill();ctx.strokeStyle='rgba(71,205,226,.56)';ctx.lineWidth=.8;ctx.stroke();
+        const bars=9,gap=mouthW*.067,barW=(mouthW-gap*(bars+1))/bars;
+        for(let i=0;i<bars;i++){
+          const wave=state==='speaking' ? .16+Math.abs(Math.sin(frame*.17+i*.77))*.66 : state==='thinking' ? .12+Math.abs(Math.sin(frame*.045+i*.42))*.21 : .09+Math.abs(Math.sin(frame*.025+i*.47))*.08;
+          const bh=Math.max(2,mouthH*wave),bx=-mouthW/2+gap+i*(barW+gap);makeRoundedRect(bx,mouthY-bh/2,barW,bh,1);ctx.fillStyle=state==='speaking'?'#93f5fa':'#48cde2';ctx.globalAlpha=.68+wave*.35;ctx.fill();ctx.globalAlpha=1;
+        }
+        ctx.beginPath();ctx.moveTo(-halfW*.42,halfH*.62);ctx.quadraticCurveTo(0,halfH*.78,halfW*.42,halfH*.62);ctx.strokeStyle='rgba(88,206,222,.48)';ctx.lineWidth=1.2;ctx.stroke();
+        ctx.fillStyle='rgba(112,239,247,.86)';ctx.shadowColor=accent;ctx.shadowBlur=9;ctx.beginPath();ctx.arc(0,-halfH*.91,2.1,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.restore();
+      }
+      function draw(){
+        raf=0;if(document.hidden||w<1||h<1)return;if(!reducedMotion)frame++;
+        const state=coreState,thinking=state==='thinking',speaking=state==='speaking',listening=state==='listening';
+        rotation+=reducedMotion ? 0 : thinking ? .010 : speaking ? .0075 : listening ? .0038 : .00125;
+        gazeX+=(targetX-gazeX)*.08;gazeY+=(targetY-gazeY)*.08;
+        ctx.clearRect(0,0,w,h);
+        const cx=w*.5,cy=h*.49,radius=Math.max(48,Math.min(w*.37,(h-112)*.46,202));
+        const halo=ctx.createRadialGradient(cx,cy,radius*.08,cx,cy,radius*1.38);halo.addColorStop(0,'rgba(27,128,164,.13)');halo.addColorStop(.56,'rgba(15,72,102,.09)');halo.addColorStop(1,'rgba(8,31,50,0)');ctx.fillStyle=halo;ctx.fillRect(cx-radius*1.5,cy-radius*1.5,radius*3,radius*3);
+        drawOrbit(cx,cy,radius,state);
+        const tilt=.24+Math.sin(frame*.006)*.035,ct=Math.cos(tilt),st=Math.sin(tilt);
+        const projected=points.map(point=>{const lon=point.lon+rotation,cl=Math.cos(point.lat),x=cl*Math.sin(lon),z=cl*Math.cos(lon),y=Math.sin(point.lat),yy=y*ct-z*st,zz=y*st+z*ct,perspective=1+zz*.09;return{x:cx+x*radius*perspective,y:cy+yy*radius*perspective,z:zz,p:point}});
+        ctx.lineWidth=.65;
+        for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+          const index=r*cols+c,a=projected[index],neighbors=[r*cols+(c+1)%cols];if(r+1<rows)neighbors.push((r+1)*cols+c,(r+1)*cols+(c+1)%cols);
+          for(const next of neighbors){const b=projected[next],depth=Math.max(.025,(a.z+b.z+2)/4),alpha=(.018+depth*(thinking ? .23 : .18))*(speaking?1.18:1);ctx.strokeStyle=thinking?`rgba(113,174,255,${alpha})`:`rgba(49,190,226,${alpha})`;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
+        }
+        for(const node of projected){const depth=Math.max(.09,(node.z+1)/2),pulse=.67+.33*Math.sin(frame*.035+node.p.twinkle),size=.45+depth*(speaking?1.55:listening?1.18:1.05);ctx.fillStyle=node.z>.35?`rgba(164,247,255,${depth*pulse*.9})`:`rgba(39,157,207,${depth*pulse*.74})`;ctx.beginPath();ctx.arc(node.x,node.y,size,0,Math.PI*2);ctx.fill()}
+        for(const star of stars){const angle=star.angle+rotation*star.speed,x=cx+Math.cos(angle)*radius*star.distance,y=cy+Math.sin(angle)*radius*star.distance*.79,twinkle=.25+.75*(.5+.5*Math.sin(frame*.035+star.phase));ctx.fillStyle=`rgba(91,214,244,${twinkle*(listening ? .62 : .43)})`;ctx.beginPath();ctx.arc(x,y,.45+(star.phase%3)*.2,0,Math.PI*2);ctx.fill()}
+        const scanY=cy-radius*.72+((frame*1.2)%(radius*1.44));ctx.strokeStyle=speaking?'rgba(103,244,250,.12)':'rgba(66,194,218,.075)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx-radius*.95,scanY);ctx.lineTo(cx+radius*.95,scanY);ctx.stroke();
+        drawRobotFace(cx,cy,radius,state);
+        if(!reducedMotion&&!document.hidden)raf=requestAnimationFrame(draw);
+      }
+      function scheduleDraw(){if(!raf&&!document.hidden)raf=requestAnimationFrame(draw)}
+      window.requestJarvisCoreDraw=scheduleDraw;
+      canvas.addEventListener('pointermove',event=>{const box=canvas.getBoundingClientRect();targetX=clamp((event.clientX-box.left-box.width/2)/(box.width*.36),-1,1);targetY=clamp((event.clientY-box.top-box.height/2)/(box.height*.36),-1,1);if(reducedMotion){gazeX=targetX;gazeY=targetY;scheduleDraw()}});
+      canvas.addEventListener('pointerleave',()=>{targetX=0;targetY=0;if(reducedMotion){gazeX=0;gazeY=0;scheduleDraw()}});
+      document.addEventListener('visibilitychange',()=>{if(document.hidden&&raf){cancelAnimationFrame(raf);raf=0}else scheduleDraw()});
+      if(window.ResizeObserver)new ResizeObserver(resize).observe(canvas);else window.addEventListener('resize',resize);resize();
+    })();
+  </script>
+</body>
+</html>
